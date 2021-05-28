@@ -29,18 +29,25 @@ usage() {
         exit 1
 }
 
+
+
+
+
+
+
 #Function to create Full-Backup at chosen Destination 
 full_backup() {
 	echo "Full-Backup will be created"
-	rsync -av ${backupSourceDir} ${backupDestinationDir}/${archive_file}
-	zip ${backupDestinationDir}/${archive_file}.zip ${backupDestinationDir}/${archive_file}/* 
+	tar -cjf ${backupDestinationDir}/Backups/weekly/full_$(date +%Y%m%d).tar.bz2 ${backupDestinationDir}/Backups/daily/
+	
 }
 
 #Function to create Incremental-Backup building on previous Full-Backup
 incremental_backup() {
 	echo "Incremental-Backup will be created"
-	zip ${backupDestinationDir}/${archive_file}.zip ${backupSourceDir}/* && rsync -av ${backupDestinationDir}/${archive_file} /${backupDestinationDir}/
-
+	#the ‘a’ flag tells rsync to go into archive mode / the ‘v’ option is just verbose (show details)
+	rsync -av --delete ${backupSourceDir} ${backupDestinationDir}/Backups/daily
+	
 }
 
 #The first Arguent switches the Backup-mode depending on User-Input [-a full /-a incremental]
@@ -75,6 +82,14 @@ do
 done
 shift $((OPTIND-1))
 
+
+if [ -d "${backupDestinationDir}" ]; then
+  	#checks if the 2 subdirectories of the Backupdirectory exist or creates them
+	[ ! -d "${backupDestinationDir}/Backups/weekly" ] && mkdir -p "${backupDestinationDir}/Backups/weekly" "${backupDestinationDir}/Backups/daily"
+else
+	echo "Destination not valid" 
+	exit 1
+fi
 
 #changes Backup-type depending on the boolean $fullBackupSwitch, executing the corresponding function (incremental_backup / full_backup)
 if [ $fullBackupSwitch == false ]; then 
