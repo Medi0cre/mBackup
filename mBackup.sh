@@ -16,11 +16,6 @@ backupDestinationDir=""
 #Boolean to switch betwen the 2 Backup-Types (Is set by User-Input later
 fullBackupSwitch="true"
 
-# Create archive filename.
-day=$(date +%A)
-hostname=$(hostname -s)
-archive_file="$hostname-$day"
-
 #Function to show the User what to Input
 usage() {
         echo "Backup: $(basename $0) [-a -b]" 2>&1
@@ -29,23 +24,18 @@ usage() {
         exit 1
 }
 
-
-
-
-
-
-
 #Function to create Full-Backup at chosen Destination 
 full_backup() {
 	echo "Full-Backup will be created"
-	tar -cjf ${backupDestinationDir}/Backups/weekly/full_$(date +%Y%m%d).tar.bz2 ${backupDestinationDir}/Backups/daily/
+	#the ‘c’ flag is required to create an archive / the ‘v’ option is verbose (show details)
+	tar -cvf ${backupDestinationDir}/Backups/weekly/full_$(date +%Y%m%d).tar ${backupDestinationDir}/Backups/daily/
 	
 }
 
 #Function to create Incremental-Backup building on previous Full-Backup
 incremental_backup() {
 	echo "Incremental-Backup will be created"
-	#the ‘a’ flag tells rsync to go into archive mode / the ‘v’ option is just verbose (show details)
+	#the ‘a’ flag tells rsync to go into archive mode / the ‘v’ option is verbose (show details)
 	rsync -av --delete ${backupSourceDir} ${backupDestinationDir}/Backups/daily
 	
 }
@@ -82,7 +72,6 @@ do
 done
 shift $((OPTIND-1))
 
-
 if [ -d "${backupDestinationDir}" ]; then
   	#checks if the 2 subdirectories of the Backupdirectory exist or creates them
 	[ ! -d "${backupDestinationDir}/Backups/weekly" ] && mkdir -p "${backupDestinationDir}/Backups/weekly" "${backupDestinationDir}/Backups/daily"
@@ -91,7 +80,7 @@ else
 	exit 1
 fi
 
-#changes Backup-type depending on the boolean $fullBackupSwitch, executing the corresponding function (incremental_backup / full_backup)
+#changes Backup-type depending on the boolean $fullBackupSwitch, entering the corresponding function (incremental_backup / full_backup)
 if [ $fullBackupSwitch == false ]; then 
 	incremental_backup
 else
